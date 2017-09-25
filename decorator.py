@@ -29,104 +29,46 @@ class Decor_lib(object):
 
 		inner.__name__ = self.f.__name__
 		inner.__self__ = self.f.__self__
+		inner.__dir__ = self.f.__dir__
 		return inner
 
 	def __add__(self, func):
-		# f = eval("inspect.getsourcelines(" + func + ")")[0]
-		f = eval("inspect.getsourcelines(cat)")[0]
-		print(f)
-		def replace(var, s, org, new):
-			var = ''.join(var)
-			num = var.find(s)
-			var = var[:num].replace(org, new) + var[num:]
+		f = eval("inspect.getsourcelines(" + func[0] + ")", func[1])[0]
+		def replace(var, b, e, r, new):
+			start = var.find(b)
+			end = var.find(e)
+			if not(start != -1 and end != -1): 
+				return var.split('\n')
+			var_s = var[:start]
+			var_e = var[end:]
+			if r == '': var = var[: start + len(b)] + new + var_e
+			else: 		var = var_s + var[start:end].replace(r, new) + var_e
 			return var.split('\n')
-				
-		print(f)
-		f = replace(f, 'cat', 'replaced')
-		print(f)
+		
+		f = ''.join(f).split('\n')
+		f = replace(f[0], '(', ':', ')', "self, *args, **kwargs)") + f[1:]
 
+		for idx, line in enumerate(f[1:]):
+			f = f[:idx + 1] + replace(f[idx + 1], 'if ', ':', 'cond', "self.cond") + f[idx + 2:]
+			f = f[:idx + 1] + replace(f[idx + 1], 'f(', ')', '', "*args, **kwargs") + f[idx + 2:]
+			f = f[:idx + 1] + replace(f[idx + 1], '\t', 'f(', '', "res = self.") + f[idx + 2:]
+			f = f[:idx + 1] + replace(f[idx + 1], 'str(', 'f.__name__', '', "self.") + f[idx + 2:]
 
-		print("\n\nAdding func")
-		exec(f)
-		exec("Decor_lib." + func + " = " + func)
+		f.pop()
+		f.append("\treturn res")
 
-	def debug(self, *args, **kwargs):
-		if self.cond: print(col("green", "\nEnter: ") + str(self.f.__name__))
-		res = self.f(*args, **kwargs)
-		if self.cond: print(col("red", "Exit: ") + str(self.f.__name__))
-		return res
+		exec('\n'.join(f), func[1])
+		exec("Decor_lib." + func[0] + " = " + func[0], func[1])
 
-	def pretty(self, *args, **kwargs):
-		if self.cond: print(col("green", "\nPretty enter: ") + str(self.f.__name__))
-		res = self.f(*args, **kwargs)
-		if self.cond: print(col("red", "Pretty exit: ") + str(self.f.__name__))
-		return res
+	def __mul__(self, func):
+		f = eval("inspect.getsourcelines(" + func[0] + ")", func[1])[0]
+		exec('\n'.join(f), func[1])
+		exec("Decor_lib." + func[0] + " = " + func[0], func[1])
 
-	def test(self, *args, **kwargs):
-		if self.cond: print(col("green", "\ntest enter: ") + str(self.f.__name__))
-		res = self.f(*args, **kwargs)
-		if self.cond: print(col("red", "test exit: ") + str(self.f.__name__))
-		return res
-
-def dog(self, *args, **kwargs):
-	if self.cond: print(col("green", "\ndog_func enter: ") + str(self.f.__name__))
-	res = self.f(*args, **kwargs)
-	if self.cond: print(col("red", "dog_func exit: ") + str(self.f.__name__))
-	return res
-
-def cat(self, *args, **kwargs):
-	if self.cond: print(col("green", "\ncat_func enter: ") + str(self.f.__name__))
-	res = self.f(*args, **kwargs)
-	if self.cond: print(col("red", "cat_func exit: ") + str(self.f.__name__))
-	return res
-
-def snake():
-	if cond: print("snake_func enter: ") + str(f.__name__)
-	f()
-	if cond: print("snake_func exit: ") + str(f.__name__)
-
-def add_func(func):
-	Decor_lib(True, "add") + func
-	pass	
-
-### Start of prgram ###
-class This():	
-	def __init__(self, args):
-		self.c = 8
-		for key, val in args.items(): exec("self." + key + " = " + str(val))
-
-	def fueoahteoahe(self):
-		self.rcr = 9
-
-class Cfunc3(This):
-	def __init__(self, args):
-		super().__init__(args)
-		self.x = 2
-
-	def func3(self, d3):
-		print("In func3: " + str(d3))
-		self.y = 3
-
-	def func4(self):
-		self.f = 9
-		print("In func4")
-
+def decor_lib_add(funcname, globe):
+	Decor_lib(True, "add") + (funcname, globe)
+def decor_lib_addraw(funcname, globe):
+	Decor_lib(True, "add") * (funcname, globe)
 
 if __name__ == "__main__":
-	d = bool(int(sys.argv[1]))
-
-	decs = {"debug": d, "pretty": d, "test": not d}
-	t = Cfunc3(args = decs)
-	
-	decorate(t, 't', decs, globals())
-	t.func3(d)
-	t.func4()
-
-	print("\n\n=== Testing range ===\n")
-	add_func("replaced")
-	decs = {"debug": d, "replaced": not d}
-	t = Cfunc3(args = decs)
-	
-	decorate(t, 't', decs, globals())
-	t.func3(d)
-	t.func4()
+	raise BaseException("This program cannot be run as main!")
