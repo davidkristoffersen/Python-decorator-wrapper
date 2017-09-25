@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-import sys
+import sys, inspect, re
 from color import get as col
 
 def decorate(self, name, decs, globe):
@@ -31,9 +31,24 @@ class Decor_lib(object):
 		inner.__self__ = self.f.__self__
 		return inner
 
-	def add_decor(self, func, func_name):
-		exec("self." + func_name + " = " + func_name)
-		# pass
+	def __add__(self, func):
+		# f = eval("inspect.getsourcelines(" + func + ")")[0]
+		f = eval("inspect.getsourcelines(cat)")[0]
+		print(f)
+		def replace(var, s, org, new):
+			var = ''.join(var)
+			num = var.find(s)
+			var = var[:num].replace(org, new) + var[num:]
+			return var.split('\n')
+				
+		print(f)
+		f = replace(f, 'cat', 'replaced')
+		print(f)
+
+
+		print("\n\nAdding func")
+		exec(f)
+		exec("Decor_lib." + func + " = " + func)
 
 	def debug(self, *args, **kwargs):
 		if self.cond: print(col("green", "\nEnter: ") + str(self.f.__name__))
@@ -54,14 +69,24 @@ class Decor_lib(object):
 		return res
 
 def dog(self, *args, **kwargs):
-	if self.cond: print(col("green", "\nadd_func enter: ") + str(self.f.__name__))
+	if self.cond: print(col("green", "\ndog_func enter: ") + str(self.f.__name__))
 	res = self.f(*args, **kwargs)
-	if self.cond: print(col("red", "add_func exit: ") + str(self.f.__name__))
+	if self.cond: print(col("red", "dog_func exit: ") + str(self.f.__name__))
 	return res
 
-def add_func():
-	dec = Decor_lib(True, "add_decor")
-	dec.add_decor(dog, 'dog')
+def cat(self, *args, **kwargs):
+	if self.cond: print(col("green", "\ncat_func enter: ") + str(self.f.__name__))
+	res = self.f(*args, **kwargs)
+	if self.cond: print(col("red", "cat_func exit: ") + str(self.f.__name__))
+	return res
+
+def snake():
+	if cond: print("snake_func enter: ") + str(f.__name__)
+	f()
+	if cond: print("snake_func exit: ") + str(f.__name__)
+
+def add_func(func):
+	Decor_lib(True, "add") + func
 	pass	
 
 ### Start of prgram ###
@@ -89,6 +114,7 @@ class Cfunc3(This):
 
 if __name__ == "__main__":
 	d = bool(int(sys.argv[1]))
+
 	decs = {"debug": d, "pretty": d, "test": not d}
 	t = Cfunc3(args = decs)
 	
@@ -97,4 +123,10 @@ if __name__ == "__main__":
 	t.func4()
 
 	print("\n\n=== Testing range ===\n")
-	add_func()
+	add_func("replaced")
+	decs = {"debug": d, "replaced": not d}
+	t = Cfunc3(args = decs)
+	
+	decorate(t, 't', decs, globals())
+	t.func3(d)
+	t.func4()
