@@ -1,18 +1,4 @@
-# Python decorator wrapper
-
-First edition of a decorator wrapper in python
-
-Usage:
-from decorator import *
-
-Supports the following:
-
-- Creation of conditional decorators
-- Assigning decorators to any desired function anywhere in the code (@ symbol not needed over the function)
-- decor_lib_add and decor_lib_addraw: Adds new decorators in the library
-
-Example program:
-```
+#!/usr/bin/env python3
 import sys
 from decorator import *
 
@@ -58,4 +44,4 @@ if __name__ == "__main__":
 	decorate(f, 'f', decs, globals())
 
 	f.child()
-	f.parent()```
+	f.parent()
